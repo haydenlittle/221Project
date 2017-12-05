@@ -18,38 +18,39 @@ def distance(p0, p1):
     return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
 
 
-# precincts = {}
-# old_precincts = load_obj('precincts')
-# json_data = open('mn-precincts.json')
-# data = json.load(json_data)
-# for entry in data['features'] :
-    # print entry['properties']['Precinct']
-    # precincts[entry['properties']['Precinct']] = {}
-    # precincts[entry['properties']['Precinct']]['points'] = set()
-    # precincts[entry['properties']['Precinct']]['neighbors'] = set()
-    # precincts[entry['properties']['PrecinctID']] = {}
-    # precincts[entry['properties']['PrecinctID']]['name'] = entry['properties']['Precinct']
-    # precincts[entry['properties']['PrecinctID']]['points'] = set()
-    # precincts[entry['properties']['PrecinctID']]['neighbors'] = copy.deepcopy(old_precincts[entry['properties']['Precinct']]['neighbors'])
-#     precincts[entry['properties']['PrecinctID']]['neighbors'] = set()
-#     for x in entry['geometry']['coordinates'] :
-#         for y in x :
-#             if len(y) != 2 :
-#                 for z in y :
-#                     precincts[entry['properties']['PrecinctID']]['points'].add(tuple(z))
-#             else :
-#                 precincts[entry['properties']['PrecinctID']]['points'].add(tuple(y))
-# count = 1
-# for precinct1 in precincts :
-#     print('executing precinct ' + str(count) + ' out of ' + str(len(precincts)))
-#     for precinct2 in precincts :
-#         if precinct1 != precinct2 :
-#             if any(i in precincts[precinct1]['points'] for i in precincts[precinct2]['points']) :
-#                 precincts[precinct1]['neighbors'].add(precinct2)
-#     if len(precincts[precinct1]['neighbors']) == 0 :
-#         print('no neighbors found for ' + precinct1)
-#     count += 1
-# save_obj(precincts, 'precincts')
+precincts = {}
+old_precincts = load_obj('precincts')
+json_data = open('mn-precincts.json')
+data = json.load(json_data)
+for entry in data['features'] :
+    print entry['properties']['Precinct']
+    #precincts[entry['properties']['Precinct']] = {}
+    #precincts[entry['properties']['Precinct']]['points'] = set()
+    #precincts[entry['properties']['Precinct']]['neighbors'] = set()
+    precincts[entry['properties']['PrecinctID']] = {}
+    precincts[entry['properties']['PrecinctID']]['name'] = entry['properties']['Precinct']
+    precincts[entry['properties']['PrecinctID']]['points'] = set()
+    #precincts[entry['properties']['PrecinctID']]['neighbors'] = copy.deepcopy(old_precincts[entry['properties']['Precinct']]['neighbors'])
+    precincts[entry['properties']['PrecinctID']]['neighbors'] = set()
+    for x in entry['geometry']['coordinates'] :
+        for y in x :
+            if len(y) != 2 :
+                for z in y :
+                    precincts[entry['properties']['PrecinctID']]['points'].add(tuple(z))
+            else :
+                precincts[entry['properties']['PrecinctID']]['points'].add(tuple(y))
+count = 1
+for precinct1 in precincts :
+    print('executing precinct ' + str(count) + ' out of ' + str(len(precincts)))
+    for precinct2 in precincts :
+        if precinct1 != precinct2 :
+            if any(i in precincts[precinct1]['points'] for i in precincts[precinct2]['points']) :
+                precincts[precinct1]['neighbors'].add(precinct2)
+    if len(precincts[precinct1]['neighbors']) == 0 :
+        print('no neighbors found for ' + precinct1)
+        del precincts[precinct1]
+    count += 1
+#save_obj(precincts, 'precincts')
 
 # precincts['270010150']['neighbors'].add('270010110')
 # precincts['270010110']['neighbors'].add('270010150')
@@ -76,7 +77,7 @@ def distance(p0, p1):
 
 # precincts = load_obj('precincts')
 
-precincts = load_obj('precincts')
+#precincts = load_obj('precincts')
 
 # for precinct in precincts :
 #     if len(precincts[precinct]['neighbors']) == 0 :

@@ -45,6 +45,7 @@ for precinct1 in precincts :
     for precinct2 in precincts :
         if precinct1 != precinct2 :
             if any(i in precincts[precinct1]['points'] for i in precincts[precinct2]['points']) :
+            # if len(precincts[precinct1]['points'] & precincts[precinct2]['points']) > 1:
                 precincts[precinct1]['neighbors'].add(precinct2)
     if len(precincts[precinct1]['neighbors']) == 0 :
         print('no neighbors found for ' + precinct1)

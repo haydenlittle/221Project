@@ -36,6 +36,7 @@
           map.data.setStyle(function(feature) {
             var dist = feature.getProperty('CongDist');
             var color = 'black';
+            dist = parseInt(dist)
             switch(dist) {
               case 1 :
                 color = 'red';

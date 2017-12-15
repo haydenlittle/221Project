@@ -59,12 +59,22 @@ def noMovesLeft(dictionary) :
 #             new_distnum_to_possible_adds[1].add(n)
 #         recurse(new_distnum_to_possible_adds, new_assigned_precincts, new_dist_to_num_people, count)
 
+precincts = load_obj('precincts_with_voter_data')
+total = 0
+for precinct in precincts :
+    precincts[precinct]['district'] = 9
+    total += precincts[precinct]['num_registered_voters']
+print('TOTAL VOTERS IN MINNESOTA: ' + str(total))
 
-best_ass_prec = ({}, 10000)
+starting_precincts = random.sample(precincts, 9)
 
-for iterat in range(0, 100) :
+best_ass_prec = ({}, 0)
+
+old_score = -1
+learned_perc = 50.0
+probRandom = 1.0
+for iterat in range(0, 1) :
     print('iter ' + str(iterat))
-    precincts = load_obj('precincts_with_voter_data')
     # for precinct in precincts :
     #     precincts[precinct]['district'] = 6
     #
@@ -86,7 +96,7 @@ for iterat in range(0, 100) :
     for precinct in precincts :
         precincts[precinct]['district'] = 9
 
-    starting_precincts = random.sample(precincts, 9)
+    # starting_precincts = random.sample(precincts, 9)
     for i in range(1, 9) :
         precincts[starting_precincts[i]]['district'] = i
         distnum_to_possible_adds[i] = copy.deepcopy(precincts[starting_precincts[i]]['neighbors'])
@@ -101,63 +111,87 @@ for iterat in range(0, 100) :
     #recurse(distnum_to_possible_adds, assigned_precincts, dist_to_num_people, count)
     end = False
     while True :
-        # for i in range(1, 9) :
-        if len(possibilities) != 0 :
-            x = min([(n, dist_to_num_people[n]) for n in possibilities], key=lambda x:x[1])
-            i = x[0]
-        else :
-            break
-        if len(distnum_to_possible_adds[i]) == 0 :
-            print('no moves left for ' + str(i))
-            possibilities.remove(i)
-            continue
+
         if len(possibilities) == 0 :
             print 'sucks'
             end = True
             break
-        # if dist_to_num_people[i] > 480000 :
-        #     possibilities.remove(i)
-        #     print('overage for' + str(i))
-        #     continue
-        if len(precincts) == len(assigned_precincts) :
-            end = True
-            break
-        if len(distnum_to_possible_adds[i]) == 0 :
-            continue
-        for poss_add in distnum_to_possible_adds[i].copy() :
-            if poss_add in assigned_precincts.copy() :
-                distnum_to_possible_adds[i].remove(poss_add)
-        # next_add = random.sample(distnum_to_possible_adds[i], 1)[0]
-        best_candidate = ('0', 0)
-        for candid in distnum_to_possible_adds[i] :
-            if dist_to_num_people[i] + precincts[candid]['num_registered_voters'] == 0:
+
+        for i in possibilities :
+
+        # if len(possibilities) != 0 :
+        #     x = min([(n, dist_to_num_people[n]) for n in possibilities], key=lambda x:x[1])
+        #     i = x[0]
+        # else :
+        #     break
+
+            if len(distnum_to_possible_adds[i]) == 0 :
+                print('no moves left for ' + str(i))
+                possibilities.remove(i)
+                print len(possibilities)
                 continue
-            perc_dem = float(dist_to_num_dems[i] + precincts[candid]['num_democratic_votes']) / float(dist_to_num_people[i] + precincts[candid]['num_registered_voters'])
-            if abs(perc_dem - 50.0) < abs(list(best_candidate)[1] - 50.0) :
-                best_candidate = (candid, abs(perc_dem - 50.0))
-        next_add = list(best_candidate)[0]
-        distnum_to_possible_adds[i].remove(next_add)
-        for dist in distnum_to_possible_adds :
-            if next_add in distnum_to_possible_adds[dist] :
-                distnum_to_possible_adds[dist].remove(next_add)
-        precincts[next_add]['district'] = i
-        assigned_precincts[next_add] = i
-        dist_to_num_people[i] += precincts[next_add]['num_registered_voters']
-        dist_to_num_dems[i] += precincts[next_add]['num_democratic_votes']
-        dist_to_num_repubs[i] += precincts[next_add]['num_republican_votes']
-        for neighbor in precincts[next_add]['neighbors'] :
-            if neighbor not in assigned_precincts :
-                distnum_to_possible_adds[i].add(neighbor)
+            if dist_to_num_people[i] > 480000 :
+                possibilities.remove(i)
+                print('overage for ' + str(i))
+                print len(possibilities)
+                continue
+            if len(precincts) == len(assigned_precincts) :
+                end = True
+                break
+            if len(distnum_to_possible_adds[i]) == 0 :
+                continue
+            for poss_add in distnum_to_possible_adds[i].copy() :
+                if poss_add in assigned_precincts.copy() :
+                    distnum_to_possible_adds[i].remove(poss_add)
+            # next_add = random.sample(distnum_to_possible_adds[i], 1)[0]
+            chooseBest = random.random()
+            if (chooseBest > probRandom):
+                best_candidate = ('0', 0)
+                for candid in distnum_to_possible_adds[i] :
+                    if dist_to_num_people[i] + precincts[candid]['num_registered_voters'] == 0:
+                        continue
+                    perc_repub = float(dist_to_num_repubs[i] + precincts[candid]['num_republican_votes']) / float(dist_to_num_people[i] + precincts[candid]['num_registered_voters'])
+                    if abs(perc_repub - learned_perc) < abs(list(best_candidate)[1] - learned_perc) :
+                        best_candidate = (candid, abs(perc_repub - learned_perc))
+                next_add = list(best_candidate)[0]
+            else :
+                next_add = random.sample(distnum_to_possible_adds[i], 1)[0]
+            distnum_to_possible_adds[i].remove(next_add)
+            for dist in distnum_to_possible_adds :
+                if next_add in distnum_to_possible_adds[dist] :
+                    distnum_to_possible_adds[dist].remove(next_add)
+            precincts[next_add]['district'] = i
+            assigned_precincts[next_add] = i
+            dist_to_num_people[i] += precincts[next_add]['num_registered_voters']
+            dist_to_num_dems[i] += precincts[next_add]['num_democratic_votes']
+            dist_to_num_repubs[i] += precincts[next_add]['num_republican_votes']
+            for neighbor in precincts[next_add]['neighbors'] :
+                if neighbor not in assigned_precincts :
+                    distnum_to_possible_adds[i].add(neighbor)
         if end :
             break
 
 # print best_ass_prec[1]
-
+    score = 0
     for i in range(1, 9) :
-        print (float(dist_to_num_repubs[i]) / float(dist_to_num_people[i]), dist_to_num_people[i])
+        assignment = (float(dist_to_num_repubs[i]) / float(dist_to_num_people[i]), dist_to_num_people[i])
+        if assignment[0] > 0.5:
+            score += 100 + ((assignment[0] * 100) - 50.0)
+        print assignment
+    if best_ass_prec[1] < score :
+        best_ass_prec = (assigned_precincts.copy(), score)
+        print 'new best assignment found!'
+    print old_score
+    if (old_score > 0) :
+        learned_perc += 0.001 * (score - old_score)
+        probRandom += 0.0001 * (score - old_score)
+        print ('new learned percentage is ' + str(learned_perc))
+        print ('new probRandom is ' + str(probRandom))
+    print ('score: ' + str(score))
+    old_score = score
 
-    if (sum([abs(float(dist_to_num_repubs[i]) / float(dist_to_num_people[i])) - 50.0 for i in range(1,9)]) < list(best_ass_prec)[1]):
-        best_ass_prec = (assigned_precincts.copy(), sum([abs(float(dist_to_num_repubs[i]) / float(dist_to_num_people[i])) - 50.0 for i in range(1,9)]))
+    # if (sum([abs(float(dist_to_num_repubs[i]) / float(dist_to_num_people[i])) - 50.0 for i in range(1,9)]) < list(best_ass_prec)[1]):
+    #     best_ass_prec = (assigned_precincts.copy(), sum([abs(float(dist_to_num_repubs[i]) / float(dist_to_num_people[i])) - 50.0 for i in range(1,9)]))
 
 json_data = open('mn-precincts.json')
 data = json.load(json_data)
